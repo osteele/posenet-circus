@@ -266,6 +266,7 @@ function detectPoseInRealTime(video, net) {
       if (score >= minPoseConfidence) {
         if (guiState.output.showPoints) {
           drawKeypoints(keypoints, minPartConfidence, ctx);
+          console.log(keypoints[9].position.x)
         }
         if (guiState.output.showSkeleton) {
           drawSkeleton(keypoints, minPartConfidence, ctx);
