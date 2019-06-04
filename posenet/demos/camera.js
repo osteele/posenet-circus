@@ -36,6 +36,8 @@ function isMobile() {
   return isAndroid() || isiOS();
 }
 
+let webSocket = new WebSocket("ws://localhost:8080");
+
 /**
  * Loads a the camera to be used in the demo
  *
@@ -266,7 +268,9 @@ function detectPoseInRealTime(video, net) {
       if (score >= minPoseConfidence) {
         if (guiState.output.showPoints) {
           drawKeypoints(keypoints, minPartConfidence, ctx);
-          console.log(keypoints[9].position.x)
+          console.log(keypoints[9].position.x) // we think this is the right wrist
+          webSocket.send(keypoints[9].position.x)
+
         }
         if (guiState.output.showSkeleton) {
           drawSkeleton(keypoints, minPartConfidence, ctx);
