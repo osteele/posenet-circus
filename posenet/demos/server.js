@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 const osc = require("osc");
 
 const wss = new WebSocket.Server({ port: 8080 });
-var oscPort = new osc.UDPPort({
+const oscPort = new osc.UDPPort({
     remoteAddress: "127.0.0.1",
     remotePort: 6448,
     metadata: true
