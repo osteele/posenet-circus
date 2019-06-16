@@ -271,10 +271,9 @@ function detectPoseInRealTime(video, net) {
           if (Math.min(keypoints[9].score, keypoints[10].score) >= minPartConfidence) {
             let wristD = wristDist(keypoints[9].position.y, keypoints[10].position.y, keypoints[9].position.x, keypoints[10].position.y);
             // console.log(keypoints[9].position.x) // we think this is the right wrist
-            console.log(wristD);
+            console.log('wristD', wristD);
             webSocket.send(wristD);
           }
-
         }
         if (guiState.output.showSkeleton) {
           drawSkeleton(keypoints, minPartConfidence, ctx);
