@@ -24,9 +24,16 @@ To watch files for changes, and launch a dev server:
 ```sh
 yarn watch
 ```
+Server will be running at http://localhost:1234, direct your brownser there to see this Posenet
 
 in another terminal
 
 ```sh
 node server.js
 ```
+
+## References
+
+
+Posenet online documentation
+https://github.com/tensorflow/tfjs-models/tree/master/posenet

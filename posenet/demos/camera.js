@@ -18,7 +18,7 @@ import * as posenet from '@tensorflow-models/posenet';
 import dat from 'dat.gui';
 import Stats from 'stats.js';
 
-import {drawBoundingBox, drawKeypoints, drawSkeleton} from './demo_util';
+import {drawBoundingBox, drawKeypoints, drawSkeleton, drawPoint} from './demo_util';
 
 const videoWidth = 600;
 const videoHeight = 500;
@@ -271,7 +271,11 @@ function detectPoseInRealTime(video, net) {
           if (Math.min(keypoints[9].score, keypoints[10].score) >= minPartConfidence) {
             let wristD = wristDist(keypoints[9].position.y, keypoints[10].position.y, keypoints[9].position.x, keypoints[10].position.y);
             // console.log(keypoints[9].position.x) // we think this is the right wrist
-            console.log('wristD', wristD);
+            // console.log('wristD', wristD);
+            let torsoCenter = getTorsoCenter(keypoints)
+            // console.log(torsoCenter); 
+            drawPoint(ctx, torsoCenter.y, torsoCenter.x, 8, 'red')
+            console.log(openNess(keypoints))
             webSocket.send(wristD);
           }
         }
@@ -284,6 +288,8 @@ function detectPoseInRealTime(video, net) {
       }
     });
 
+  
+
     // End monitoring code for frames per second
     stats.end();
 
@@ -293,11 +299,50 @@ function detectPoseInRealTime(video, net) {
   poseDetectionFrame();
 }
 
+
 /**
  * compound feature functions e.g. distance between posenet left and right wrist
  */
 function wristDist(leftWristX, leftWristY, rightWristX, rightWristY) {
   return Math.abs(Math.sqrt((rightWristY - leftWristY)**2 + (rightWristX - leftWristX)**2));
+}
+
+function openNess(keypoints) {
+  let minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
+  let interestJoints = [0, 7, 8, 9, 10, 13, 14, 15, 16]
+  let confidentJoints = interestJoints.filter(joint => keypoints[joint].score > minPoseConfidence)
+  if (confidentJoints.length == 0) return 0
+  let distances = confidentJoints.map((interestJoint) => distanceToCenter(interestJoint, keypoints))
+  let radius = geometricMean(distances)
+  return radius
+}
+
+function geometricMean(nums) {
+  let squares = nums.map(x => x**2)
+  return Math.sqrt(average(squares))
+}
+
+function getTorsoCenter(keypoints) {
+  let torsoPoints = [keypoints[5], keypoints[6], keypoints[11], keypoints[12]]
+  return weightedCenter(torsoPoints) //at first will actually be unweighted
+}
+
+function distanceToCenter(partID, keypoints) {
+  const dx = keypoints[partID].position.x - getTorsoCenter(keypoints).x
+  const dy = keypoints[partID].position.y - getTorsoCenter(keypoints).y
+  return Math.sqrt(dx**2 + dy**2)
+}
+
+function weightedCenter(points) { //for points: returns a point not a scalar
+  let xs = points.map(point => point.position.x)
+  let ys = points.map(point => point.position.y)
+  return { x: average(xs), y: average(ys) }
+} 
+
+function average(nums) {
+  function add(a,b) {return a + b}
+  let sum = nums.reduce(add)
+  return sum  / nums.length
 }
 
 /**
