@@ -18,6 +18,8 @@ import * as posenet from '@tensorflow-models/posenet';
 import dat from 'dat.gui';
 import Stats from 'stats.js';
 
+import * as tf from '@tensorflow/tfjs';
+
 import {drawBoundingBox, drawKeypoints, drawSkeleton, drawPoint} from './demo_util';
 
 const videoWidth = 600;
@@ -232,8 +234,16 @@ function detectPoseInRealTime(video, net) {
     let minPartConfidence;
     switch (guiState.algorithm) {
       case 'single-pose':
-        const pose = await guiState.net.estimateSinglePose(
-            video, imageScaleFactor, flipHorizontal, outputStride);
+        const tensor = tf.browser.fromPixels(video)
+         
+        const pose1 = await guiState.net.estimateSinglePose(
+            tensor, imageScaleFactor, flipHorizontal, outputStride);
+        const pose2 = flipPoseVertically(await guiState.net.estimateSinglePose(
+          tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), video.height);
+        const pose = pose1.score >= pose2.score ? pose1 : pose2
+        // console.log(pose1.score, pose2.score)
+        
+
         poses.push(pose);
 
         minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
@@ -275,7 +285,9 @@ function detectPoseInRealTime(video, net) {
             let torsoCenter = getTorsoCenter(keypoints)
             // console.log(torsoCenter); 
             drawPoint(ctx, torsoCenter.y, torsoCenter.x, 8, 'red')
-            console.log(openNess(keypoints))
+            // console.log(openNess(keypoints))
+            // console.log(upsideDown(keypoints))
+
             webSocket.send(wristD);
           }
         }
@@ -299,6 +311,16 @@ function detectPoseInRealTime(video, net) {
   poseDetectionFrame();
 }
 
+function flipPoseVertically(pose, height) {
+  return {
+    score: pose.score, keypoints: pose.keypoints.map(keypoint => {
+      return { position: { x: keypoint.position.x, y: height - 1 - keypoint.position.y }, part: keypoint.part, score: keypoint.score }
+    })
+  }
+}
+
+
+
 
 /**
  * compound feature functions e.g. distance between posenet left and right wrist
@@ -314,7 +336,7 @@ function openNess(keypoints) {
   if (confidentJoints.length == 0) return 0
   let distances = confidentJoints.map((interestJoint) => distanceToCenter(interestJoint, keypoints))
   let radius = geometricMean(distances)
-  return radius
+  return radius - 100
 }
 
 function geometricMean(nums) {
@@ -325,6 +347,11 @@ function geometricMean(nums) {
 function getTorsoCenter(keypoints) {
   let torsoPoints = [keypoints[5], keypoints[6], keypoints[11], keypoints[12]]
   return weightedCenter(torsoPoints) //at first will actually be unweighted
+}
+
+function getLegCenter(keypoints) {
+  let legPoints = [keypoints[13], keypoints[14], keypoints[15], keypoints[16]]
+  return weightedCenter(legPoints) //at first will actually be unweighted
 }
 
 function distanceToCenter(partID, keypoints) {
@@ -343,6 +370,14 @@ function average(nums) {
   function add(a,b) {return a + b}
   let sum = nums.reduce(add)
   return sum  / nums.length
+}
+
+function upsideDown(keypoints) {
+  return legsAboveTorso(keypoints)
+}
+
+function legsAboveTorso(keypoints) {
+    return getLegCenter(keypoints).y < getTorsoCenter(keypoints).y
 }
 
 /**
