@@ -1,5 +1,21 @@
+const fs = require('fs');
+
+const express = require('express')
+const app = express()
+
 const WebSocket = require('ws');
 const osc = require("osc");
+
+app.use(express.static('circus images and video'))
+
+app.get('/', (req, res) => {
+    const items = fs.readdirSync("circus images and video");
+    console.log(JSON.stringify(items));
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(items))
+})
+  
+app.listen(3000)
 
 const wss = new WebSocket.Server({ port: 8080 });
 const wekPort = new osc.UDPPort({
