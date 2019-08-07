@@ -209,6 +209,8 @@ function detectPoseInRealTime(video, net) {
   canvas.width = videoWidth;
   canvas.height = videoHeight;
 
+  let rightSideUpFlag = true 
+
   async function poseDetectionFrame() {
     if (guiState.changeToArchitecture) {
       // Important to purge variables and free up GPU memory
@@ -225,7 +227,7 @@ function detectPoseInRealTime(video, net) {
     stats.begin();
 
     // Scale an image down to a certain factor. Too large of an image will slow
-    // down the GPU
+    //sdown the GPU
     const imageScaleFactor = guiState.input.imageScaleFactor;
     const outputStride = +guiState.input.outputStride;
 
@@ -235,14 +237,31 @@ function detectPoseInRealTime(video, net) {
     switch (guiState.algorithm) {
       case 'single-pose':
         const tensor = tf.browser.fromPixels(video)
-         
-        const pose1 = await guiState.net.estimateSinglePose(
+        let pose;
+
+        if (rightSideUpFlag) {
+          const pose1 = await guiState.net.estimateSinglePose(
             tensor, imageScaleFactor, flipHorizontal, outputStride);
-        const pose2 = flipPoseVertically(await guiState.net.estimateSinglePose(
-          tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), video.height);
-        const pose = pose1.score >= pose2.score ? pose1 : pose2
-        // console.log(pose1.score, pose2.score)
-        
+          if (pose1.score > .5) {
+            pose = pose1
+          } else {
+            const pose2 = flipPoseVertically(await guiState.net.estimateSinglePose(
+              tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), video.height);
+            pose = pose1.score >= pose2.score ? pose1 : pose2
+            rightSideUpFlag = pose == pose1
+          }
+        } else {
+          const pose2 = flipPoseVertically(await guiState.net.estimateSinglePose(
+            tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), video.height);
+          if (pose2.score > .5) {
+            pose = pose2
+          } else {
+            const pose1 = await guiState.net.estimateSinglePose(
+              tensor, imageScaleFactor, flipHorizontal, outputStride);
+            pose = pose1.score >= pose2.score ? pose1 : pose2
+            rightSideUpFlag = pose == pose1
+            }
+          }
 
         poses.push(pose);
 
