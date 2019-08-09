@@ -23,6 +23,10 @@
         display: none;
       }
     }
+
+    body.webcam #canned { display: none }
+    body.canned video { display: none }
+    #canned { display: none }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
@@ -42,6 +46,7 @@
         display: none;
         ">
         </video>
+        <img id="canned" width="300" height="300"  />
         <canvas id="output" />
     </div>
     <div class="footer">

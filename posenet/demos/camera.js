@@ -21,6 +21,8 @@ import Stats from 'stats.js';
 import * as tf from '@tensorflow/tfjs';
 
 import {drawBoundingBox, drawKeypoints, drawSkeleton, drawPoint} from './demo_util';
+import { image } from '@tensorflow/tfjs';
+
 
 const videoWidth = 600;
 const videoHeight = 500;
@@ -39,6 +41,13 @@ function isMobile() {
 }
 
 const webSocket = new WebSocket("ws://localhost:8080");
+
+async function fetchImageList() {
+const response = await fetch('http://localhost:3000/');
+const json = await response.json();
+console.log(json);
+return json;
+}
 
 /**
  * Loads a the camera to be used in the demo
@@ -86,6 +95,7 @@ const guiState = {
     outputStride: 16,
     imageScaleFactor: 0.5,
   },
+  image: 'webcam',
   singlePoseDetection: {
     minPoseConfidence: 0.1,
     minPartConfidence: 0.5,
@@ -108,7 +118,7 @@ const guiState = {
 /**
  * Sets up dat.gui controller on the top-right of the window
  */
-function setupGui(cameras, net) {
+function setupGui(cameras, net, imageList) {
   guiState.net = net;
 
   if (cameras.length > 0) {
@@ -116,6 +126,7 @@ function setupGui(cameras, net) {
   }
 
   const gui = new dat.GUI({width: 300});
+  gui.add(guiState, 'image', ['webcam', ...imageList]);
 
   // The single-pose algorithm is faster and simpler but requires only one
   // person to be in the frame or results will be innaccurate. Multi-pose works
@@ -234,9 +245,23 @@ function detectPoseInRealTime(video, net) {
     let poses = [];
     let minPoseConfidence;
     let minPartConfidence;
+    let imageSrc = video;
+    const canned = document.getElementById('canned');
+    switch (guiState.image) {
+      case "webcam":
+        document.body.className = "webcam"
+        break;
+      default:
+        console.log(guiState.image);
+        document.body.className = "canned"
+        canned.crossOrigin = "anonymous"
+        canned.src = "http://localhost:3000/" + guiState.image
+        imageSrc = canned
+        break;
+    }
     switch (guiState.algorithm) {
       case 'single-pose':
-        const tensor = tf.browser.fromPixels(video)
+        const tensor = tf.browser.fromPixels(imageSrc)
         let pose;
 
         if (rightSideUpFlag) {
@@ -246,13 +271,13 @@ function detectPoseInRealTime(video, net) {
             pose = pose1
           } else {
             const pose2 = flipPoseVertically(await guiState.net.estimateSinglePose(
-              tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), video.height);
+              tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), imageSrc.height);
             pose = pose1.score >= pose2.score ? pose1 : pose2
             rightSideUpFlag = pose == pose1
           }
         } else {
           const pose2 = flipPoseVertically(await guiState.net.estimateSinglePose(
-            tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), video.height);
+            tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), imageSrc.height);
           if (pose2.score > .5) {
             pose = pose2
           } else {
@@ -286,7 +311,7 @@ function detectPoseInRealTime(video, net) {
       ctx.save();
       ctx.scale(-1, 1);
       ctx.translate(-videoWidth, 0);
-      ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+      ctx.drawImage(imageSrc, 0, 0, imageSrc.width, imageSrc.height);
       ctx.restore();
     }
 
@@ -422,7 +447,12 @@ export async function bindPage() {
     throw e;
   }
 
-  setupGui([], net);
+
+
+  const imageList = await fetchImageList();
+
+
+  setupGui([], net, imageList);
   setupFPS();
   detectPoseInRealTime(video, net);
 }
