@@ -177,11 +177,11 @@ function setupGui(cameras, net, imageList) {
   output.open();
 
 
-  architectureController.onChange(function (architecture) {
+  architectureController.onChange((architecture) => {
     guiState.changeToArchitecture = architecture;
   });
 
-  algorithmController.onChange(function (value) {
+  algorithmController.onChange((value) => {
     switch (guiState.algorithm) {
       case 'single-pose':
         multi.close();
