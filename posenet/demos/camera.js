@@ -15,14 +15,10 @@
  * =============================================================================
  */
 import * as posenet from '@tensorflow-models/posenet';
+import * as tf from '@tensorflow/tfjs';
 import dat from 'dat.gui';
 import Stats from 'stats.js';
-
-import * as tf from '@tensorflow/tfjs';
-
-import {drawBoundingBox, drawKeypoints, drawSkeleton, drawPoint} from './demo_util';
-import { image } from '@tensorflow/tfjs';
-
+import { drawBoundingBox, drawKeypoints, drawPoint, drawSkeleton } from './demo_util';
 
 const videoWidth = 600;
 const videoHeight = 500;
@@ -40,13 +36,13 @@ function isMobile() {
   return isAndroid() || isiOS();
 }
 
-const webSocket = new WebSocket("ws://localhost:8080");
+const webSocket = new WebSocket('ws://localhost:8080');
 
 async function fetchImageList() {
-const response = await fetch('http://localhost:3000/');
-const json = await response.json();
-console.log(json);
-return json;
+  const response = await fetch('http://localhost:3000/');
+  const json = await response.json();
+  console.log(json);
+  return json;
 }
 
 /**
@@ -56,7 +52,7 @@ return json;
 async function setupCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     throw new Error(
-        'Browser API navigator.mediaDevices.getUserMedia not available');
+      'Browser API navigator.mediaDevices.getUserMedia not available');
   }
 
   const video = document.getElementById('video');
@@ -125,14 +121,14 @@ function setupGui(cameras, net, imageList) {
     guiState.camera = cameras[0].deviceId;
   }
 
-  const gui = new dat.GUI({width: 300});
+  const gui = new dat.GUI({ width: 300 });
   gui.add(guiState, 'image', ['webcam', ...imageList]);
 
   // The single-pose algorithm is faster and simpler but requires only one
   // person to be in the frame or results will be innaccurate. Multi-pose works
   // for more than 1 person
   const algorithmController =
-      gui.add(guiState, 'algorithm', ['single-pose', 'multi-pose']);
+    gui.add(guiState, 'algorithm', ['single-pose', 'multi-pose']);
 
   // The input parameters have the most effect on accuracy and speed of the
   // network
@@ -141,8 +137,8 @@ function setupGui(cameras, net, imageList) {
   // accuracy. 1.01 is the largest, but will be the slowest. 0.50 is the
   // fastest, but least accurate.
   const architectureController = input.add(
-      guiState.input, 'mobileNetArchitecture',
-      ['1.01', '1.00', '0.75', '0.50']);
+    guiState.input, 'mobileNetArchitecture',
+    ['1.01', '1.00', '0.75', '0.50']);
   // Output stride:  Internally, this parameter affects the height and width of
   // the layers in the neural network. The lower the value of the output stride
   // the higher the accuracy but slower the speed, the higher the value the
@@ -163,9 +159,9 @@ function setupGui(cameras, net, imageList) {
 
   let multi = gui.addFolder('Multi Pose Detection');
   multi.add(guiState.multiPoseDetection, 'maxPoseDetections')
-      .min(1)
-      .max(20)
-      .step(1);
+    .min(1)
+    .max(20)
+    .step(1);
   multi.add(guiState.multiPoseDetection, 'minPoseConfidence', 0.0, 1.0);
   multi.add(guiState.multiPoseDetection, 'minPartConfidence', 0.0, 1.0);
   // nms Radius: controls the minimum distance between poses that are returned
@@ -181,11 +177,11 @@ function setupGui(cameras, net, imageList) {
   output.open();
 
 
-  architectureController.onChange(function(architecture) {
+  architectureController.onChange(function (architecture) {
     guiState.changeToArchitecture = architecture;
   });
 
-  algorithmController.onChange(function(value) {
+  algorithmController.onChange(function (value) {
     switch (guiState.algorithm) {
       case 'single-pose':
         multi.close();
@@ -203,7 +199,7 @@ function setupGui(cameras, net, imageList) {
  * Sets up a frames per second panel on the top-left of the window
  */
 function setupFPS() {
-  stats.showPanel(0);  // 0: fps, 1: ms, 2: mb, 3+: custom
+  stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
   document.body.appendChild(stats.dom);
 }
 
@@ -220,7 +216,7 @@ function detectPoseInRealTime(video, net) {
   canvas.width = videoWidth;
   canvas.height = videoHeight;
 
-  let rightSideUpFlag = true 
+  let rightSideUpFlag = true;
 
   async function poseDetectionFrame() {
     if (guiState.changeToArchitecture) {
@@ -238,7 +234,7 @@ function detectPoseInRealTime(video, net) {
     stats.begin();
 
     // Scale an image down to a certain factor. Too large of an image will slow
-    //sdown the GPU
+    // sdown the GPU
     const imageScaleFactor = guiState.input.imageScaleFactor;
     const outputStride = +guiState.input.outputStride;
 
@@ -248,45 +244,45 @@ function detectPoseInRealTime(video, net) {
     let imageSrc = video;
     const canned = document.getElementById('canned');
     switch (guiState.image) {
-      case "webcam":
-        document.body.className = "webcam"
+      case 'webcam':
+        document.body.className = 'webcam';
         break;
       default:
         console.log(guiState.image);
-        document.body.className = "canned"
-        canned.crossOrigin = "anonymous"
-        canned.src = "http://localhost:3000/" + guiState.image
-        imageSrc = canned
+        document.body.className = 'canned';
+        canned.crossOrigin = 'anonymous';
+        canned.src = 'http://localhost:3000/' + guiState.image;
+        imageSrc = canned;
         break;
     }
     switch (guiState.algorithm) {
       case 'single-pose':
-        const tensor = tf.browser.fromPixels(imageSrc)
+        const tensor = tf.browser.fromPixels(imageSrc);
         let pose;
 
         if (rightSideUpFlag) {
           const pose1 = await guiState.net.estimateSinglePose(
             tensor, imageScaleFactor, flipHorizontal, outputStride);
           if (pose1.score > .5) {
-            pose = pose1
+            pose = pose1;
           } else {
             const pose2 = flipPoseVertically(await guiState.net.estimateSinglePose(
               tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), imageSrc.height);
-            pose = pose1.score >= pose2.score ? pose1 : pose2
-            rightSideUpFlag = pose == pose1
+            pose = pose1.score >= pose2.score ? pose1 : pose2;
+            rightSideUpFlag = pose == pose1;
           }
         } else {
           const pose2 = flipPoseVertically(await guiState.net.estimateSinglePose(
             tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), imageSrc.height);
           if (pose2.score > .5) {
-            pose = pose2
+            pose = pose2;
           } else {
             const pose1 = await guiState.net.estimateSinglePose(
               tensor, imageScaleFactor, flipHorizontal, outputStride);
-            pose = pose1.score >= pose2.score ? pose1 : pose2
-            rightSideUpFlag = pose == pose1
-            }
+            pose = pose1.score >= pose2.score ? pose1 : pose2;
+            rightSideUpFlag = pose == pose1;
           }
+        }
 
         poses.push(pose);
 
@@ -295,10 +291,10 @@ function detectPoseInRealTime(video, net) {
         break;
       case 'multi-pose':
         poses = await guiState.net.estimateMultiplePoses(
-            video, imageScaleFactor, flipHorizontal, outputStride,
-            guiState.multiPoseDetection.maxPoseDetections,
-            guiState.multiPoseDetection.minPartConfidence,
-            guiState.multiPoseDetection.nmsRadius);
+          video, imageScaleFactor, flipHorizontal, outputStride,
+          guiState.multiPoseDetection.maxPoseDetections,
+          guiState.multiPoseDetection.minPartConfidence,
+          guiState.multiPoseDetection.nmsRadius);
 
         minPoseConfidence = +guiState.multiPoseDetection.minPoseConfidence;
         minPartConfidence = +guiState.multiPoseDetection.minPartConfidence;
@@ -318,17 +314,19 @@ function detectPoseInRealTime(video, net) {
     // For each pose (i.e. person) detected in an image, loop through the poses
     // and draw the resulting skeleton and keypoints if over certain confidence
     // scores
-    poses.forEach(({score, keypoints}) => {
+    poses.forEach(({ score, keypoints }) => {
       if (score >= minPoseConfidence) {
         if (guiState.output.showPoints) {
           drawKeypoints(keypoints, minPartConfidence, ctx);
           if (Math.min(keypoints[9].score, keypoints[10].score) >= minPartConfidence) {
-            let wristD = wristDist(keypoints[9].position.y, keypoints[10].position.y, keypoints[9].position.x, keypoints[10].position.y);
+            const kp1 = keypoints[9].position;
+            const kp2 = keypoints[10].position;
+            let wristD = wristDist(kp1.y, kp2.y, kp1.x, kp2.y);
             // console.log(keypoints[9].position.x) // we think this is the right wrist
             // console.log('wristD', wristD);
-            let torsoCenter = getTorsoCenter(keypoints)
-            // console.log(torsoCenter); 
-            drawPoint(ctx, torsoCenter.y, torsoCenter.x, 8, 'red')
+            let torsoCenter = getTorsoCenter(keypoints);
+            // console.log(torsoCenter);
+            drawPoint(ctx, torsoCenter.y, torsoCenter.x, 8, 'red');
             // console.log(openNess(keypoints))
             // console.log(upsideDown(keypoints))
 
@@ -344,7 +342,6 @@ function detectPoseInRealTime(video, net) {
       }
     });
 
-  
 
     // End monitoring code for frames per second
     stats.end();
@@ -357,71 +354,74 @@ function detectPoseInRealTime(video, net) {
 
 function flipPoseVertically(pose, height) {
   return {
-    score: pose.score, keypoints: pose.keypoints.map(keypoint => {
-      return { position: { x: keypoint.position.x, y: height - 1 - keypoint.position.y }, part: keypoint.part, score: keypoint.score }
-    })
-  }
+    score: pose.score, keypoints: pose.keypoints.map((keypoint) => {
+      const { x, y } = keypoint.position;
+      return { position: { x: x, y: height - 1 - y }, part: keypoint.part, score: keypoint.score };
+    }),
+  };
 }
-
-
 
 
 /**
  * compound feature functions e.g. distance between posenet left and right wrist
  */
 function wristDist(leftWristX, leftWristY, rightWristX, rightWristY) {
-  return Math.abs(Math.sqrt((rightWristY - leftWristY)**2 + (rightWristX - leftWristX)**2));
+  return Math.abs(Math.sqrt((rightWristY - leftWristY) ** 2 + (rightWristX - leftWristX) ** 2));
 }
 
+// eslint-disable-next-line no-unused-vars
 function openNess(keypoints) {
   let minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
-  let interestJoints = [0, 7, 8, 9, 10, 13, 14, 15, 16]
-  let confidentJoints = interestJoints.filter(joint => keypoints[joint].score > minPoseConfidence)
-  if (confidentJoints.length == 0) return 0
-  let distances = confidentJoints.map((interestJoint) => distanceToCenter(interestJoint, keypoints))
-  let radius = geometricMean(distances)
-  return radius - 100
+  let interestJoints = [0, 7, 8, 9, 10, 13, 14, 15, 16];
+  let confidentJoints = interestJoints.filter((joint) => keypoints[joint].score > minPoseConfidence);
+  if (confidentJoints.length == 0) return 0;
+  let distances = confidentJoints.map((interestJoint) => distanceToCenter(interestJoint, keypoints));
+  let radius = geometricMean(distances);
+  return radius - 100;
 }
 
 function geometricMean(nums) {
-  let squares = nums.map(x => x**2)
-  return Math.sqrt(average(squares))
+  let squares = nums.map((x) => x ** 2);
+  return Math.sqrt(average(squares));
 }
 
 function getTorsoCenter(keypoints) {
-  let torsoPoints = [keypoints[5], keypoints[6], keypoints[11], keypoints[12]]
-  return weightedCenter(torsoPoints) //at first will actually be unweighted
+  let torsoPoints = [keypoints[5], keypoints[6], keypoints[11], keypoints[12]];
+  return weightedCenter(torsoPoints); // at first will actually be unweighted
 }
 
 function getLegCenter(keypoints) {
-  let legPoints = [keypoints[13], keypoints[14], keypoints[15], keypoints[16]]
-  return weightedCenter(legPoints) //at first will actually be unweighted
+  let legPoints = [keypoints[13], keypoints[14], keypoints[15], keypoints[16]];
+  return weightedCenter(legPoints); // at first will actually be unweighted
 }
 
 function distanceToCenter(partID, keypoints) {
-  const dx = keypoints[partID].position.x - getTorsoCenter(keypoints).x
-  const dy = keypoints[partID].position.y - getTorsoCenter(keypoints).y
-  return Math.sqrt(dx**2 + dy**2)
+  const dx = keypoints[partID].position.x - getTorsoCenter(keypoints).x;
+  const dy = keypoints[partID].position.y - getTorsoCenter(keypoints).y;
+  return Math.sqrt(dx ** 2 + dy ** 2);
 }
 
-function weightedCenter(points) { //for points: returns a point not a scalar
-  let xs = points.map(point => point.position.x)
-  let ys = points.map(point => point.position.y)
-  return { x: average(xs), y: average(ys) }
-} 
+function weightedCenter(points) { // for points: returns a point not a scalar
+  let xs = points.map((point) => point.position.x);
+  let ys = points.map((point) => point.position.y);
+  return { x: average(xs), y: average(ys) };
+}
 
 function average(nums) {
-  function add(a,b) {return a + b}
-  let sum = nums.reduce(add)
-  return sum  / nums.length
+  function add(a, b) {
+    return a + b;
+  }
+  let sum = nums.reduce(add);
+  return sum / nums.length;
 }
 
+// eslint-disable-next-line no-unused-vars
 function upsideDown(keypoints) {
-  return legsAboveTorso(keypoints)
+  return legsAboveTorso(keypoints);
 }
 
 function legsAboveTorso(keypoints) {
-    return getLegCenter(keypoints).y < getTorsoCenter(keypoints).y
+  return getLegCenter(keypoints).y < getTorsoCenter(keypoints).y;
 }
 
 /**
@@ -442,11 +442,10 @@ export async function bindPage() {
   } catch (e) {
     let info = document.getElementById('info');
     info.textContent = 'this browser does not support video capture,' +
-        'or this device does not have a camera';
+      'or this device does not have a camera';
     info.style.display = 'block';
     throw e;
   }
-
 
 
   const imageList = await fetchImageList();
@@ -458,6 +457,6 @@ export async function bindPage() {
 }
 
 navigator.getUserMedia = navigator.getUserMedia ||
-    navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+  navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 // kick off the demo
 bindPage();
