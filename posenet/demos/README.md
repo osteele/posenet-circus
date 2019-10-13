@@ -1,5 +1,6 @@
 # PoseNet Demos
-# modified by OWS, MM May June 2019
+
+[Modified by OWS, MM May June 2019]
 
 ## Contents
 
@@ -9,9 +10,7 @@ The camera demo shows how to estimate poses in real-time from a webcam video str
 
 <img src="https://raw.githubusercontent.com/irealva/tfjs-models/master/posenet/demos/camera.gif" alt="cameraDemo" style="width: 600px;"/>
 
-
 ## Setup
-
 
 Install dependencies and prepare the build directory:
 
@@ -19,43 +18,46 @@ Install dependencies and prepare the build directory:
 yarn
 ```
 
-To watch files for changes, and launch a dev server:
+## Running
 
-```sh
+Run the API server in one terminal window:
+
+```shell
+yarn api-server
+```
+
+In another terminal window, run the web server:
+
+```shell
 yarn watch
 ```
-Server will be running at http://localhost:1234, direct your brownser there to see this Posenet
 
-in another terminal
-
-```sh
-node server.js
-```
+The web server will be running at <http://localhost:1234>.
 
 ## References
 
+[PoseNet online documentation](https://github.com/tensorflow/tfjs-models/tree/master/posenet)
 
-Posenet online documentation
-https://github.com/tensorflow/tfjs-models/tree/master/posenet
+### Keypoints
 
-Keypoints
 All keypoints are indexed by part id. The parts and their ids are:
 
-Id	Part
-0	nose
-1	leftEye
-2	rightEye
-3	leftEar
-4	rightEar
-5	leftShoulder
-6	rightShoulder
-7	leftElbow
-8	rightElbow
-9	leftWrist
-10	rightWrist
-11	leftHip
-12	rightHip
-13	leftKnee
-14	rightKnee
-15	leftAnkle
-16	rightAnkle
+| Id  | Part          |
+| --- | ------------- |
+| 0   | nose          |
+| 1   | leftEye       |
+| 2   | rightEye      |
+| 3   | leftEar       |
+| 4   | rightEar      |
+| 5   | leftShoulder  |
+| 6   | rightShoulder |
+| 7   | leftElbow     |
+| 8   | rightElbow    |
+| 9   | leftWrist     |
+| 10  | rightWrist    |
+| 11  | leftHip       |
+| 12  | rightHip      |
+| 13  | leftKnee      |
+| 14  | rightKnee     |
+| 15  | leftAnkle     |
+| 16  | rightAnkle    |
