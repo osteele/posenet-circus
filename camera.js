@@ -41,7 +41,7 @@ const webSocket = new WebSocket('ws://localhost:8080');
 async function fetchImageList() {
   const response = await fetch('http://localhost:3000/');
   const json = await response.json();
-  console.log(json);
+  console.log('Received image list:', json);
   return json;
 }
 

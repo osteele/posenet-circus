@@ -1,62 +1,67 @@
+const cors = require('cors');
+const express = require('express');
 const fs = require('fs');
-
-const express = require('express')
-const app = express()
-
-var cors = require('cors')
-app.use(cors())
-
+const osc = require('osc');
 const WebSocket = require('ws');
-const osc = require("osc");
 
-app.use(express.static('circus images and video'))
+const IMAGE_DIR = 'circus images and video';
+
+const app = express();
+app.use(cors());
+app.use(express.static(IMAGE_DIR));
 
 app.get('/', (req, res) => {
-    const items = fs.readdirSync("circus images and video");
-    console.log(JSON.stringify(items));
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(items))
-})
-  
-app.listen(3000)
+  const items = fs.readdirSync(IMAGE_DIR);
+  console.log('Sending image list:', JSON.stringify(items));
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify(items));
+});
 
+app.listen(3000);
+
+/*
+ * WebSocket and OSC connections
+ */
 const wss = new WebSocket.Server({ port: 8080 });
-const wekPort = new osc.UDPPort({
-    remoteAddress: "127.0.0.1",
-    localPort: 57122,
-    remotePort: 6448,
-    metadata: true
-});
-wekPort.open();
-const outPort = new osc.UDPPort({
-    remoteAddress: "127.0.0.1",
-    remotePort: 7000,
-    metadata: true
-});
-outPort.open();
+console.log(`Websocket server running at http://localhost:${wss.options.port}`);
 
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
-    wekPort.send({
-       address: "/wek/inputs",
-       args: [
-           {
-               type: "f",
-               value: message
-           }
-       ]
-   });
-   outPort.send({
-    address: "/pose/outputs",
-    args: [
-        {
-            type: "f",
-            value: message
-        }
-    ]
-    });
+const oscPorts = [
+  {
+    port: new osc.UDPPort({
+      remoteAddress: '127.0.0.1',
+      localPort: 57122,
+      remotePort: 6448,
+      metadata: true,
+    }),
+    address: '/wek/inputs',
+  },
+  {
+    port: new osc.UDPPort({
+      remoteAddress: '127.0.0.1',
+      remotePort: 7000,
+      metadata: true,
+    }),
+    address: '/pose/outputs',
+  },
+];
+
+let openOscPorts = () => {
+  oscPorts.forEach(({ port }) => {
+    console.log(`Relaying data to osc://${port.options.remoteAddress}:${port.options.remotePort}`);
+    port.open();
   });
+  openOscPorts = () => { };
+};
 
-
+wss.on('connection', (ws) => {
+  ws.on('message', (message) => {
+    console.log('Websocket received: %s', message);
+    openOscPorts();
+    oscPorts.forEach(({ port, address }) =>
+      port.send({
+        address,
+        args: [{ type: 'f', value: message }],
+      })
+    );
+  });
 });
