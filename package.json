@@ -1,5 +1,5 @@
 {
-  "name": "tfjs-models",
+  "name": "posenet-experiments",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
@@ -20,8 +20,8 @@
   },
   "scripts": {
     "api-server": "cross-env NODE_ENV=development node server.js",
-    "watch": "cross-env NODE_ENV=development parcel camera.html --no-hmr --open",
-    "build": "cross-env NODE_ENV=production parcel build camera.html --no-minify --public-url ./",
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
+    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
     "lint": "eslint ."
   },
   "devDependencies": {
