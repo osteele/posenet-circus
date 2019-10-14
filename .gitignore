@@ -1,14 +1,6 @@
-node_modules
+.cache
+circus images and video/
+coverage/
 dist/
-
-**/*/node_modules
-**/*/coverage
-**/*/.cache
-**/*/yarn-error.log
-**/*/yalc.lock
-**/*/.yalc
-
-.rpt2_cache/
-
-*.pyc
-posenet/demos/circus images and video
+node_modules/
+yarn-error.log

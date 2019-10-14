@@ -1,47 +1,63 @@
-# Pre-trained TensorFlow.js models
+# PoseNet Demos
 
-This repository hosts a set of pre-trained models that have been ported to
-TensorFlow.js.
+[Modified by OWS, MM May June 2019]
 
-The models are hosted on NPM and unpkg so they can be used in any project out of the box. They can be used directly or used in a transfer learning
-setting with TensorFlow.js.
+## Contents
 
-To find out about APIs for models, look at the README in each of the respective
-directories. In general, we try to hide tensors so the API can be used by
-non-machine learning experts.
+### Demo 1: Camera
 
-For those intested in contributing a model, please file a [GitHub issue on tfjs](https://github.com/tensorflow/tfjs/issues) to gauge
-interest. We are trying to add models that complement the existing set of models
-and can be used as building blocks in other apps.
+The camera demo shows how to estimate poses in real-time from a webcam video stream.
 
-## Models
+<img src="https://raw.githubusercontent.com/irealva/tfjs-models/master/posenet/demos/camera.gif" alt="cameraDemo" style="width: 600px;"/>
 
-### Image
-- [MobileNet](https://github.com/tensorflow/tfjs-models/tree/master/mobilenet) - Classify images with labels from the [ImageNet database](http://www.image-net.org/).
-  - `npm i @tensorflow-models/mobilenet`
-- [PoseNet](https://github.com/tensorflow/tfjs-models/tree/master/posenet) - Realtime pose detection. Blog post [here](https://medium.com/tensorflow/real-time-human-pose-estimation-in-the-browser-with-tensorflow-js-7dd0bc881cd5).
-  - `npm i @tensorflow-models/posenet`
-- [Coco SSD](https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd) - Object detection based on the [TensorFlow object detection API](https://github.com/tensorflow/models/blob/master/research/object_detection/README.md).
-  - `npm i @tensorflow-models/coco-ssd`
+## Setup
 
-### Audio
-- [Speech commands](https://github.com/tensorflow/tfjs-models/tree/master/speech-commands) - Classify 1 second audio snippets from the [speech commands dataset](https://www.tensorflow.org/tutorials/sequences/audio_recognition).
-  - `npm i @tensorflow-models/speech-commands`
+Install dependencies and prepare the build directory:
 
-### General utilities
-- [KNN Classifier](https://github.com/tensorflow/tfjs-models/tree/master/knn-classifier) - Create a custom k-nearest neighbors classifier. Can be used for transfer learning.
-  - `npm i @tensorflow-models/knn-classifier`
+```sh
+yarn
+```
 
-## Development
+## Running
 
-You can run the unit tests for any of the models by running the following
-inside a directory:
+Run the API server in one terminal window:
 
-`yarn test`
+```shell
+yarn api-server
+```
 
-New models should have a test NPM script.
+In another terminal window, run the web server:
 
-To run all of the tests, you can run the following command from the root of this
-repo:
+```shell
+yarn watch
+```
 
-`yarn presubmit`
+The web server will be running at <http://localhost:1234>.
+
+## References
+
+[PoseNet online documentation](https://github.com/tensorflow/tfjs-models/tree/master/posenet)
+
+### Keypoints
+
+All keypoints are indexed by part id. The parts and their ids are:
+
+| Id  | Part          |
+| --- | ------------- |
+| 0   | nose          |
+| 1   | leftEye       |
+| 2   | rightEye      |
+| 3   | leftEar       |
+| 4   | rightEar      |
+| 5   | leftShoulder  |
+| 6   | rightShoulder |
+| 7   | leftElbow     |
+| 8   | rightElbow    |
+| 9   | leftWrist     |
+| 10  | rightWrist    |
+| 11  | leftHip       |
+| 12  | rightHip      |
+| 13  | leftKnee      |
+| 14  | rightKnee     |
+| 15  | leftAnkle     |
+| 16  | rightAnkle    |

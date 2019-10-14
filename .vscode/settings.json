@@ -1,12 +1,15 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "search.exclude": {
-    "**/node_modules": true,
+    "**/.git": false,
+    "**/.git/**": true,
     "**/bower_components": true,
-    "coverage/": true,
-    "dist/": true,
     "**/bundle.js": true,
-    "**/yarn.lock": true
+    "**/dist/**": true,
+    "**/node_modules": true,
+    "**/yarn.lock": true,
+    "coverage/": true,
+    "dist/": true
   },
   "tslint.enable": true,
   "tslint.run": "onType",
@@ -20,7 +23,9 @@
   "[javascript]": {
     "editor.formatOnSave": true
   },
-  "editor.rulers": [80],
+  "editor.rulers": [
+    80
+  ],
   "clang-format.style": "Google",
   "files.insertFinalNewline": true,
   "editor.detectIndentation": false,
