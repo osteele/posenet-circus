@@ -13,7 +13,6 @@
 }
 
 @media only screen and (max-width: 600px) {
-
   .footer-text,
   .dg {
     display: none;
@@ -26,6 +25,14 @@ body.webcam #canned {
 
 body.canned video {
   display: none
+}
+
+video {
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+  display: none;
 }
 
 #canned {
