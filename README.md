@@ -1,20 +1,20 @@
-# PoseNet Demos
+# PoseNet Experiments
 
-[Modified by OWS, MM May June 2019]
+This is a platform for experimenting with PoseNet. The code is adapted from the
+tensorflow PosetNet demo at
+[@tensorflow/tfjs-models](https://github.com/tensorflow/tfjs-models/tree/master/posenet).
+It adds:
 
-## Contents
-
-### Demo 1: Camera
-
-The camera demo shows how to estimate poses in real-time from a webcam video stream.
-
-<img src="https://raw.githubusercontent.com/irealva/tfjs-models/master/posenet/demos/camera.gif" alt="cameraDemo" style="width: 600px;"/>
+* The option to select and operate on a static image from a directory.
+* Extracts a feature, and sends it to an API server where it is relayed to OSC.
+* Images are considered both rightside up and upside down. This is an attempt to
+  recognize people doing circus activities.
 
 ## Setup
 
 Install dependencies and prepare the build directory:
 
-```sh
+```shell
 yarn
 ```
 
