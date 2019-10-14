@@ -20,6 +20,11 @@ import dat from 'dat.gui';
 import Stats from 'stats.js';
 import { drawBoundingBox, drawKeypoints, drawPoint, drawSkeleton } from './demo_util';
 
+const SERVER_NAME = window.location.hostname;
+const API_SERVER_NAME = SERVER_NAME;
+const WEBSOCKET_PORT = 8080;
+const API_SERVER_PORT = 3000;
+
 const videoWidth = 600;
 const videoHeight = 500;
 const stats = new Stats();
@@ -36,17 +41,17 @@ function isMobile() {
   return isAndroid() || isiOS();
 }
 
-const webSocket = new WebSocket('ws://localhost:8080');
+const webSocket = new WebSocket(`ws://${SERVER_NAME}:${WEBSOCKET_PORT}`);
 
 async function fetchImageList() {
-  const response = await fetch('http://localhost:3000/');
+  const response = await fetch(`http://${API_SERVER_NAME}:${API_SERVER_PORT}/`);
   const json = await response.json();
   console.log('Received image list:', json);
   return json;
 }
 
 /**
- * Loads a the camera to be used in the demo
+ * Loads the camera to be used in the demo
  *
  */
 async function setupCamera() {
@@ -251,7 +256,7 @@ function detectPoseInRealTime(video, net) {
         console.log(guiState.image);
         document.body.className = 'canned';
         canned.crossOrigin = 'anonymous';
-        canned.src = 'http://localhost:3000/' + guiState.image;
+        canned.src = `http://${API_SERVER_NAME}:${API_SERVER_PORT}/` + guiState.image;
         imageSrc = canned;
         break;
     }

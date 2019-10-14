@@ -4,6 +4,8 @@ const fs = require('fs');
 const osc = require('osc');
 const WebSocket = require('ws');
 
+const HTTP_PORT = 3000;
+const WEBSOCKET_PORT = 8080;
 const IMAGE_DIR = 'circus images and video';
 
 const app = express();
@@ -17,12 +19,12 @@ app.get('/', (req, res) => {
   res.send(JSON.stringify(items));
 });
 
-app.listen(3000);
+app.listen(HTTP_PORT);
 
 /*
  * WebSocket and OSC connections
  */
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: WEBSOCKET_PORT });
 console.log(`Websocket server running at http://localhost:${wss.options.port}`);
 
 const oscPorts = [
