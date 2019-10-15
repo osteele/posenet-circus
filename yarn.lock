@@ -1319,7 +1319,7 @@ babel-plugin-syntax-trailing-function-commas@^6.22.0:
   resolved "https://registry.yarnpkg.com/babel-plugin-syntax-trailing-function-commas/-/babel-plugin-syntax-trailing-function-commas-6.22.0.tgz#ba0360937f8d06e40180a43fe0d5616fff532cf3"
   integrity sha1-ugNgk3+NBuQBgKQ/4NVhb/9TLPM=
 
-babel-plugin-transform-async-to-generator@^6.22.0, babel-plugin-transform-async-to-generator@^6.24.1:
+babel-plugin-transform-async-to-generator@^6.22.0:
   version "6.24.1"
   resolved "https://registry.yarnpkg.com/babel-plugin-transform-async-to-generator/-/babel-plugin-transform-async-to-generator-6.24.1.tgz#6536e378aff6cb1d5517ac0e40eb3e9fc8d08761"
   integrity sha1-ZTbjeK/2yx1VF6wOQOs+n8jQh2E=
@@ -1586,14 +1586,6 @@ babel-preset-env@~1.6.1:
     browserslist "^2.1.2"
     invariant "^2.2.2"
     semver "^5.3.0"
-
-babel-preset-es2017@^6.24.1:
-  version "6.24.1"
-  resolved "https://registry.yarnpkg.com/babel-preset-es2017/-/babel-preset-es2017-6.24.1.tgz#597beadfb9f7f208bcfd8a12e9b2b29b8b2f14d1"
-  integrity sha1-WXvq37n38gi8/YoS6bKym4svFNE=
-  dependencies:
-    babel-plugin-syntax-trailing-function-commas "^6.22.0"
-    babel-plugin-transform-async-to-generator "^6.24.1"
 
 babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.26.0:
   version "6.26.0"
@@ -2234,9 +2226,9 @@ copy-descriptor@^0.1.0:
   integrity sha1-Z29us8OZl8LuGsOpJP1hJHSPV40=
 
 core-js-compat@^3.1.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/core-js-compat/-/core-js-compat-3.3.1.tgz#7a22cb813bdf673b9929b90da5cbf6b3f5a72f70"
-  integrity sha512-R5gisVHlU8ZXrr05qjER3SJ8pp8cYxhWQ0doIfuGhLqtHf9b3eLzzr1ZEfI7MX9JJFwVT+HuyToULupnHl0Ghw==
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/core-js-compat/-/core-js-compat-3.3.2.tgz#1096c989c1b929ede06b5b6b4768dc4439078c03"
+  integrity sha512-gfiK4QnNXhnnHVOIZst2XHdFfdMTPxtR0EGs0TdILMlGIft+087oH6/Sw2xTTIjpWXC9vEwsJA8VG3XTGcmO5g==
   dependencies:
     browserslist "^4.7.0"
     semver "^6.3.0"
