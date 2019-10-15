@@ -92,7 +92,7 @@ async function loadVideo() {
 const guiState = {
   algorithm: 'single-pose',
   input: {
-    mobileNetArchitecture: isMobile() ? '0.50' : '0.75',
+    architecture: isMobile() ? 'MobileNetV1' : 'ResNet50',
     outputStride: 16,
     imageScaleFactor: 0.5,
   },
@@ -142,8 +142,8 @@ function setupGui(cameras, net, imageList) {
   // accuracy. 1.01 is the largest, but will be the slowest. 0.50 is the
   // fastest, but least accurate.
   const architectureController = input.add(
-    guiState.input, 'mobileNetArchitecture',
-    ['1.01', '1.00', '0.75', '0.50']);
+    guiState.input, 'architecture',
+    ['ResNet50', 'MobileNetV1']);
   // Output stride:  Internally, this parameter affects the height and width of
   // the layers in the neural network. The lower the value of the output stride
   // the higher the accuracy but slower the speed, the higher the value the
@@ -224,24 +224,40 @@ function detectPoseInRealTime(video, net) {
   let rightSideUpFlag = true;
 
   async function poseDetectionFrame() {
+    let changed = false;
     if (guiState.changeToArchitecture) {
+      guiState.architecture = guiState.changeToArchitecture;
+      guiState.changeToArchitecture = null;
+    }
+    if (guiState.changeToMultiplier) {
+      guiState.multipler = +guiState.changeToMultiplier;
+      guiState.changeToMultiplier = null;
+    }
+    if (guiState.changeToOutputStride) {
+      guiState.outputStride = +guiState.changeToOutputStride;
+      guiState.changeToOutputStride = null;
+    }
+    if (guiState.changeToInputResolution) {
+      guiState.inputResolution = +guiState.changeToInputResolution;
+      guiState.changeToInputResolution = null;
+    }
+    if (changed) {
       // Important to purge variables and free up GPU memory
       guiState.net.dispose();
 
       // Load the PoseNet model weights for either the 0.50, 0.75, 1.00, or 1.01
       // version
-      guiState.net = await posenet.load(+guiState.changeToArchitecture);
-
-      guiState.changeToArchitecture = null;
+      guiState.net = await posenet.load({
+        architecture: guiState.architecture,
+        inputResolution: guiState.inputResolution,
+        outputStride: guiState.outputStride,
+        multiplier: guiState.multiplier,
+        // quantBytes: guiState.quantBytes,
+      });
     }
 
     // Begin monitoring code for frames per second
     stats.begin();
-
-    // Scale an image down to a certain factor. Too large of an image will slow
-    // sdown the GPU
-    const imageScaleFactor = guiState.input.imageScaleFactor;
-    const outputStride = +guiState.input.outputStride;
 
     let poses = [];
     let minPoseConfidence;
@@ -263,27 +279,28 @@ function detectPoseInRealTime(video, net) {
     switch (guiState.algorithm) {
       case 'single-pose':
         const tensor = tf.browser.fromPixels(imageSrc);
+        const options = { flipHorizontal };
         let pose;
 
         if (rightSideUpFlag) {
-          const pose1 = await guiState.net.estimateSinglePose(
-            tensor, imageScaleFactor, flipHorizontal, outputStride);
+          const pose1 = await guiState.net.estimateSinglePose(tensor, options);
           if (pose1.score > .5) {
             pose = pose1;
           } else {
-            const pose2 = flipPoseVertically(await guiState.net.estimateSinglePose(
-              tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), imageSrc.height);
+            const pose2 = flipPoseVertically(
+              await guiState.net.estimateSinglePose(tensor.reverse(0), options),
+              imageSrc.height);
             pose = pose1.score >= pose2.score ? pose1 : pose2;
             rightSideUpFlag = pose == pose1;
           }
         } else {
-          const pose2 = flipPoseVertically(await guiState.net.estimateSinglePose(
-            tensor.reverse(0), imageScaleFactor, flipHorizontal, outputStride), imageSrc.height);
+          const pose2 = flipPoseVertically(
+            await guiState.net.estimateSinglePose(tensor.reverse(0), options),
+            imageSrc.height);
           if (pose2.score > .5) {
             pose = pose2;
           } else {
-            const pose1 = await guiState.net.estimateSinglePose(
-              tensor, imageScaleFactor, flipHorizontal, outputStride);
+            const pose1 = await guiState.net.estimateSinglePose(tensor, options);
             pose = pose1.score >= pose2.score ? pose1 : pose2;
             rightSideUpFlag = pose == pose1;
           }
@@ -434,8 +451,7 @@ function legsAboveTorso(keypoints) {
  * available camera devices, and setting off the detectPoseInRealTime function.
  */
 export async function bindPage() {
-  // Load the PoseNet model weights with architecture 0.75
-  const net = await posenet.load(0.75);
+  const net = await posenet.load({ architecture: 'ResNet50' });
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('main').style.display = 'block';
