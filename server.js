@@ -25,31 +25,31 @@ app.listen(HTTP_PORT);
  * WebSocket and OSC connections
  */
 const wss = new WebSocket.Server({ port: WEBSOCKET_PORT });
-console.log(`Websocket server running at http://localhost:${wss.options.port}`);
+console.log('Websocket server running at http://localhost:%s', wss.options.port);
 
 const oscPorts = [
   {
-    port: new osc.UDPPort({
+    options: {
       remoteAddress: '127.0.0.1',
       localPort: 57122,
       remotePort: 6448,
       metadata: true,
-    }),
+    },
     address: '/wek/inputs',
   },
   {
-    port: new osc.UDPPort({
+    options: {
       remoteAddress: '127.0.0.1',
       remotePort: 7000,
       metadata: true,
-    }),
+    },
     address: '/pose/outputs',
   },
-];
+].map(({ options, address }) => ({ port: new osc.UDPPort(options), address: address }));
 
 let openOscPorts = () => {
   oscPorts.forEach(({ port }) => {
-    console.log(`Relaying data to osc://${port.options.remoteAddress}:${port.options.remotePort}`);
+    console.log('Relaying data to osc://%s:%d', port.options.remoteAddress, port.options.remotePort);
     port.open();
   });
   openOscPorts = () => { };
