@@ -19,13 +19,14 @@ app.get('/', (req, res) => {
   res.send(JSON.stringify(items));
 });
 
-app.listen(HTTP_PORT);
+app.listen(HTTP_PORT, (arg) => console.info(`API Server running at http://localhost:${HTTP_PORT}`));
+
 
 /*
  * WebSocket and OSC connections
  */
 const wss = new WebSocket.Server({ port: WEBSOCKET_PORT });
-console.log('Websocket server running at http://localhost:%s', wss.options.port);
+console.log('Websocket server running at ws://localhost:%s', wss.options.port);
 
 const oscPorts = [
   {
