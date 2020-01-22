@@ -48,8 +48,7 @@ async function fetchImageList() {
  */
 async function setupCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    throw new Error(
-        'Browser API navigator.mediaDevices.getUserMedia not available');
+    throw new Error('Browser API navigator.mediaDevices.getUserMedia not available');
   }
 
   const video = document.getElementById('video');
@@ -58,8 +57,8 @@ async function setupCamera() {
 
   const mobile = isMobile();
   const stream = await navigator.mediaDevices.getUserMedia({
-    'audio': false,
-    'video': {
+    audio: false,
+    video: {
       facingMode: 'user',
       width: mobile ? undefined : videoWidth,
       height: mobile ? undefined : videoHeight,
@@ -67,7 +66,7 @@ async function setupCamera() {
   });
   video.srcObject = stream;
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     video.onloadedmetadata = () => {
       resolve(video);
     };
@@ -124,8 +123,10 @@ function setupGui(cameras, net, imageList) {
   // The single-pose algorithm is faster and simpler but requires only one
   // person to be in the frame or results will be innaccurate. Multi-pose works
   // for more than 1 person
-  const algorithmController =
-    gui.add(guiState, 'algorithm', ['single-pose', 'multi-pose']);
+  const algorithmController = gui.add(guiState, 'algorithm', [
+    'single-pose',
+    'multi-pose',
+  ]);
 
   // The input parameters have the most effect on accuracy and speed of the
   // network
@@ -133,9 +134,10 @@ function setupGui(cameras, net, imageList) {
   // Architecture: there are a few PoseNet models varying in size and
   // accuracy. 1.01 is the largest, but will be the slowest. 0.50 is the
   // fastest, but least accurate.
-  const architectureController = input.add(
-      guiState.input, 'architecture',
-      ['ResNet50', 'MobileNetV1']);
+  const architectureController = input.add(guiState.input, 'architecture', [
+    'ResNet50',
+    'MobileNetV1',
+  ]);
   // Output stride:  Internally, this parameter affects the height and width of
   // the layers in the neural network. The lower the value of the output stride
   // the higher the accuracy but slower the speed, the higher the value the
@@ -143,7 +145,10 @@ function setupGui(cameras, net, imageList) {
   input.add(guiState.input, 'outputStride', [8, 16, 32]);
   // Image scale factor: What to scale the image by before feeding it through
   // the network.
-  input.add(guiState.input, 'imageScaleFactor').min(0.2).max(1.0);
+  input
+    .add(guiState.input, 'imageScaleFactor')
+    .min(0.2)
+    .max(1.0);
   input.open();
 
   // Pose confidence: the overall confidence in the estimation of a person's
@@ -155,15 +160,19 @@ function setupGui(cameras, net, imageList) {
   single.add(guiState.singlePoseDetection, 'minPartConfidence', 0.0, 1.0);
 
   const multi = gui.addFolder('Multi Pose Detection');
-  multi.add(guiState.multiPoseDetection, 'maxPoseDetections')
-      .min(1)
-      .max(20)
-      .step(1);
+  multi
+    .add(guiState.multiPoseDetection, 'maxPoseDetections')
+    .min(1)
+    .max(20)
+    .step(1);
   multi.add(guiState.multiPoseDetection, 'minPoseConfidence', 0.0, 1.0);
   multi.add(guiState.multiPoseDetection, 'minPartConfidence', 0.0, 1.0);
   // nms Radius: controls the minimum distance between poses that are returned
   // defaults to 20, which is probably fine for most use cases
-  multi.add(guiState.multiPoseDetection, 'nmsRadius').min(0.0).max(40.0);
+  multi
+    .add(guiState.multiPoseDetection, 'nmsRadius')
+    .min(0.0)
+    .max(40.0);
   multi.open();
 
   const output = gui.addFolder('Output');
@@ -173,12 +182,11 @@ function setupGui(cameras, net, imageList) {
   output.add(guiState.output, 'showBoundingBox');
   output.open();
 
-
-  architectureController.onChange((architecture) => {
+  architectureController.onChange(architecture => {
     guiState.changeToArchitecture = architecture;
   });
 
-  algorithmController.onChange((value) => {
+  algorithmController.onChange(value => {
     switch (guiState.algorithm) {
       case 'single-pose':
         multi.close();
@@ -279,20 +287,22 @@ function detectPoseInRealTime(video, net) {
 
         if (rightSideUpFlag) {
           const pose1 = await guiState.net.estimateSinglePose(tensor, options);
-          if (pose1.score > .5) {
+          if (pose1.score > 0.5) {
             pose = pose1;
           } else {
             const pose2 = flipPoseVertically(
-                await guiState.net.estimateSinglePose(tensor.reverse(0), options),
-                imageSrc.height);
+              await guiState.net.estimateSinglePose(tensor.reverse(0), options),
+              imageSrc.height
+            );
             pose = pose1.score >= pose2.score ? pose1 : pose2;
             rightSideUpFlag = pose == pose1;
           }
         } else {
           const pose2 = flipPoseVertically(
-              await guiState.net.estimateSinglePose(tensor.reverse(0), options),
-              imageSrc.height);
-          if (pose2.score > .5) {
+            await guiState.net.estimateSinglePose(tensor.reverse(0), options),
+            imageSrc.height
+          );
+          if (pose2.score > 0.5) {
             pose = pose2;
           } else {
             const pose1 = await guiState.net.estimateSinglePose(tensor, options);
@@ -308,10 +318,14 @@ function detectPoseInRealTime(video, net) {
         break;
       case 'multi-pose':
         poses = await guiState.net.estimateMultiplePoses(
-            video, imageScaleFactor, flipHorizontal, outputStride,
-            guiState.multiPoseDetection.maxPoseDetections,
-            guiState.multiPoseDetection.minPartConfidence,
-            guiState.multiPoseDetection.nmsRadius);
+          video,
+          imageScaleFactor,
+          flipHorizontal,
+          outputStride,
+          guiState.multiPoseDetection.maxPoseDetections,
+          guiState.multiPoseDetection.minPartConfidence,
+          guiState.multiPoseDetection.nmsRadius
+        );
 
         minPoseConfidence = +guiState.multiPoseDetection.minPoseConfidence;
         minPartConfidence = +guiState.multiPoseDetection.minPartConfidence;
@@ -359,7 +373,6 @@ function detectPoseInRealTime(video, net) {
       }
     });
 
-
     // End monitoring code for frames per second
     stats.end();
 
@@ -371,34 +384,44 @@ function detectPoseInRealTime(video, net) {
 
 function flipPoseVertically(pose, height) {
   return {
-    score: pose.score, keypoints: pose.keypoints.map((keypoint) => {
+    score: pose.score,
+    keypoints: pose.keypoints.map(keypoint => {
       const { x, y } = keypoint.position;
-      return { position: { x: x, y: height - 1 - y }, part: keypoint.part, score: keypoint.score };
+      return {
+        position: { x: x, y: height - 1 - y },
+        part: keypoint.part,
+        score: keypoint.score,
+      };
     }),
   };
 }
-
 
 /**
  * compound feature functions e.g. distance between posenet left and right wrist
  */
 function wristDist(leftWristX, leftWristY, rightWristX, rightWristY) {
-  return Math.abs(Math.sqrt((rightWristY - leftWristY) ** 2 + (rightWristX - leftWristX) ** 2));
+  return Math.abs(
+    Math.sqrt((rightWristY - leftWristY) ** 2 + (rightWristX - leftWristX) ** 2)
+  );
 }
 
 // eslint-disable-next-line no-unused-vars
 function openNess(keypoints) {
   const minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
   const interestJoints = [0, 7, 8, 9, 10, 13, 14, 15, 16];
-  const confidentJoints = interestJoints.filter((joint) => keypoints[joint].score > minPoseConfidence);
+  const confidentJoints = interestJoints.filter(
+    joint => keypoints[joint].score > minPoseConfidence
+  );
   if (confidentJoints.length == 0) return 0;
-  const distances = confidentJoints.map((interestJoint) => distanceToCenter(interestJoint, keypoints));
+  const distances = confidentJoints.map(interestJoint =>
+    distanceToCenter(interestJoint, keypoints)
+  );
   const radius = geometricMean(distances);
   return radius - 100;
 }
 
 function geometricMean(nums) {
-  const squares = nums.map((x) => x ** 2);
+  const squares = nums.map(x => x ** 2);
   return Math.sqrt(average(squares));
 }
 
@@ -418,9 +441,10 @@ function distanceToCenter(partID, keypoints) {
   return Math.sqrt(dx ** 2 + dy ** 2);
 }
 
-function weightedCenter(points) { // for points: returns a point not a scalar
-  const xs = points.map((point) => point.position.x);
-  const ys = points.map((point) => point.position.y);
+function weightedCenter(points) {
+  // for points: returns a point not a scalar
+  const xs = points.map(point => point.position.x);
+  const ys = points.map(point => point.position.y);
   return { x: average(xs), y: average(ys) };
 }
 
@@ -457,7 +481,8 @@ export async function bindPage() {
     video = await loadVideo();
   } catch (e) {
     const info = document.getElementById('info');
-    info.textContent = 'this browser does not support video capture,' +
+    info.textContent =
+      'this browser does not support video capture,' +
       'or this device does not have a camera';
     info.style.display = 'block';
     throw e;
@@ -470,7 +495,7 @@ export async function bindPage() {
   detectPoseInRealTime(video, net);
 }
 
-navigator.getUserMedia = navigator.getUserMedia ||
-  navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+navigator.getUserMedia =
+  navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 // kick off the demo
 bindPage();

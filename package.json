@@ -38,11 +38,13 @@
     "dat.gui": "^0.7.2",
     "eslint": "^6.8.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-prettier": "^3.1.2",
     "parcel-bundler": "^1.12.3",
     "yalc": "~1.0.0-pre.27"
   },
   "eslintConfig": {
-    "extends": "google",
+    "extends": "prettier",
     "rules": {
       "max-len": [
         "warn",
@@ -67,5 +69,10 @@
   },
   "eslintIgnore": [
     "dist/"
-  ]
+  ],
+  "prettier": {
+    "printWidth": 88,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  }
 }

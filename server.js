@@ -13,14 +13,15 @@ app.use(cors());
 app.use('/images', express.static(IMAGE_DIR));
 
 app.get('/images', (req, res) => {
-  const items = fs.readdirSync(IMAGE_DIR).filter((name) => !/^\./.test(name));
+  const items = fs.readdirSync(IMAGE_DIR).filter(name => !/^\./.test(name));
   console.log('Sending image list:', JSON.stringify(items));
   res.setHeader('Content-Type', 'application/json');
   res.send(JSON.stringify(items));
 });
 
-app.listen(HTTP_PORT, (arg) => console.info(`API Server running at http://localhost:${HTTP_PORT}`));
-
+app.listen(HTTP_PORT, () =>
+  console.info(`API Server running at http://localhost:${HTTP_PORT}`)
+);
 
 /*
  * WebSocket and OSC connections
@@ -46,18 +47,25 @@ const oscPorts = [
     },
     address: '/pose/outputs',
   },
-].map(({ options, address }) => ({ port: new osc.UDPPort(options), address: address }));
+].map(({ options, address }) => ({
+  port: new osc.UDPPort(options),
+  address: address,
+}));
 
 let openOscPorts = () => {
   oscPorts.forEach(({ port }) => {
-    console.log('Relaying data to osc://%s:%d', port.options.remoteAddress, port.options.remotePort);
+    console.log(
+      'Relaying data to osc://%s:%d',
+      port.options.remoteAddress,
+      port.options.remotePort
+    );
     port.open();
   });
-  openOscPorts = () => { };
+  openOscPorts = () => {};
 };
 
-wss.on('connection', (ws) => {
-  ws.on('message', (message) => {
+wss.on('connection', ws => {
+  ws.on('message', message => {
     console.log('Websocket received: %s', message);
     openOscPorts();
     oscPorts.forEach(({ port, address }) =>
