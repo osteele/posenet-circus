@@ -20,16 +20,10 @@ yarn install
 
 ## Running
 
-Run the API server in one terminal window:
+Run the web server and the API server:
 
 ```shell
-yarn api-server
-```
-
-In another terminal window, run the web server:
-
-```shell
-yarn watch
+yarn start
 ```
 
 The web server will be running at <http://localhost:1234>.
