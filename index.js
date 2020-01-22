@@ -36,10 +36,10 @@ const isMobile = () => isAndroid() || isiOS();
 const webSocket = new WebSocket(`ws://${SERVER_NAME}:${WEBSOCKET_PORT}`);
 
 async function fetchImageList() {
-  const response = await fetch(`http://${API_SERVER_NAME}:${API_SERVER_PORT}/`);
-  const json = await response.json();
-  console.log('Received image list:', json);
-  return json;
+  const response = await fetch(`http://${API_SERVER_NAME}:${API_SERVER_PORT}/images`);
+  const imageNames = await response.json();
+  console.log('Received image list:', imageNames);
+  return imageNames;
 }
 
 /**
@@ -265,10 +265,9 @@ function detectPoseInRealTime(video, net) {
         document.body.className = 'webcam';
         break;
       default:
-        console.log(guiState.image);
         document.body.className = 'canned';
         canned.crossOrigin = 'anonymous';
-        canned.src = `http://${API_SERVER_NAME}:${API_SERVER_PORT}/` + guiState.image;
+        canned.src = `http://${API_SERVER_NAME}:${API_SERVER_PORT}/images/${guiState.image}`;
         imageSrc = canned;
         break;
     }

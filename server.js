@@ -10,9 +10,9 @@ const IMAGE_DIR = 'images';
 
 const app = express();
 app.use(cors());
-app.use(express.static(IMAGE_DIR));
+app.use('/images', express.static(IMAGE_DIR));
 
-app.get('/', (req, res) => {
+app.get('/images', (req, res) => {
   const items = fs.readdirSync(IMAGE_DIR).filter((name) => !/^\./.test(name));
   console.log('Sending image list:', JSON.stringify(items));
   res.setHeader('Content-Type', 'application/json');
