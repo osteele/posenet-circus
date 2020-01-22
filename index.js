@@ -29,17 +29,9 @@ const videoWidth = 600;
 const videoHeight = 500;
 const stats = new Stats();
 
-function isAndroid() {
-  return /Android/i.test(navigator.userAgent);
-}
-
-function isiOS() {
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-function isMobile() {
-  return isAndroid() || isiOS();
-}
+const isAndroid = () => /Android/i.test(navigator.userAgent);
+const isiOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isMobile = () => isAndroid() || isiOS();
 
 const webSocket = new WebSocket(`ws://${SERVER_NAME}:${WEBSOCKET_PORT}`);
 
@@ -57,7 +49,7 @@ async function fetchImageList() {
 async function setupCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     throw new Error(
-      'Browser API navigator.mediaDevices.getUserMedia not available');
+        'Browser API navigator.mediaDevices.getUserMedia not available');
   }
 
   const video = document.getElementById('video');
@@ -137,13 +129,13 @@ function setupGui(cameras, net, imageList) {
 
   // The input parameters have the most effect on accuracy and speed of the
   // network
-  let input = gui.addFolder('Input');
+  const input = gui.addFolder('Input');
   // Architecture: there are a few PoseNet models varying in size and
   // accuracy. 1.01 is the largest, but will be the slowest. 0.50 is the
   // fastest, but least accurate.
   const architectureController = input.add(
-    guiState.input, 'architecture',
-    ['ResNet50', 'MobileNetV1']);
+      guiState.input, 'architecture',
+      ['ResNet50', 'MobileNetV1']);
   // Output stride:  Internally, this parameter affects the height and width of
   // the layers in the neural network. The lower the value of the output stride
   // the higher the accuracy but slower the speed, the higher the value the
@@ -158,15 +150,15 @@ function setupGui(cameras, net, imageList) {
   // pose (i.e. a person detected in a frame)
   // Min part confidence: the confidence that a particular estimated keypoint
   // position is accurate (i.e. the elbow's position)
-  let single = gui.addFolder('Single Pose Detection');
+  const single = gui.addFolder('Single Pose Detection');
   single.add(guiState.singlePoseDetection, 'minPoseConfidence', 0.0, 1.0);
   single.add(guiState.singlePoseDetection, 'minPartConfidence', 0.0, 1.0);
 
-  let multi = gui.addFolder('Multi Pose Detection');
+  const multi = gui.addFolder('Multi Pose Detection');
   multi.add(guiState.multiPoseDetection, 'maxPoseDetections')
-    .min(1)
-    .max(20)
-    .step(1);
+      .min(1)
+      .max(20)
+      .step(1);
   multi.add(guiState.multiPoseDetection, 'minPoseConfidence', 0.0, 1.0);
   multi.add(guiState.multiPoseDetection, 'minPartConfidence', 0.0, 1.0);
   // nms Radius: controls the minimum distance between poses that are returned
@@ -174,7 +166,7 @@ function setupGui(cameras, net, imageList) {
   multi.add(guiState.multiPoseDetection, 'nmsRadius').min(0.0).max(40.0);
   multi.open();
 
-  let output = gui.addFolder('Output');
+  const output = gui.addFolder('Output');
   output.add(guiState.output, 'showVideo');
   output.add(guiState.output, 'showSkeleton');
   output.add(guiState.output, 'showPoints');
@@ -228,18 +220,22 @@ function detectPoseInRealTime(video, net) {
     if (guiState.changeToArchitecture) {
       guiState.architecture = guiState.changeToArchitecture;
       guiState.changeToArchitecture = null;
+      changed = true;
     }
     if (guiState.changeToMultiplier) {
       guiState.multipler = +guiState.changeToMultiplier;
       guiState.changeToMultiplier = null;
+      changed = true;
     }
     if (guiState.changeToOutputStride) {
       guiState.outputStride = +guiState.changeToOutputStride;
       guiState.changeToOutputStride = null;
+      changed = true;
     }
     if (guiState.changeToInputResolution) {
       guiState.inputResolution = +guiState.changeToInputResolution;
       guiState.changeToInputResolution = null;
+      changed = true;
     }
     if (changed) {
       // Important to purge variables and free up GPU memory
@@ -288,15 +284,15 @@ function detectPoseInRealTime(video, net) {
             pose = pose1;
           } else {
             const pose2 = flipPoseVertically(
-              await guiState.net.estimateSinglePose(tensor.reverse(0), options),
-              imageSrc.height);
+                await guiState.net.estimateSinglePose(tensor.reverse(0), options),
+                imageSrc.height);
             pose = pose1.score >= pose2.score ? pose1 : pose2;
             rightSideUpFlag = pose == pose1;
           }
         } else {
           const pose2 = flipPoseVertically(
-            await guiState.net.estimateSinglePose(tensor.reverse(0), options),
-            imageSrc.height);
+              await guiState.net.estimateSinglePose(tensor.reverse(0), options),
+              imageSrc.height);
           if (pose2.score > .5) {
             pose = pose2;
           } else {
@@ -313,10 +309,10 @@ function detectPoseInRealTime(video, net) {
         break;
       case 'multi-pose':
         poses = await guiState.net.estimateMultiplePoses(
-          video, imageScaleFactor, flipHorizontal, outputStride,
-          guiState.multiPoseDetection.maxPoseDetections,
-          guiState.multiPoseDetection.minPartConfidence,
-          guiState.multiPoseDetection.nmsRadius);
+            video, imageScaleFactor, flipHorizontal, outputStride,
+            guiState.multiPoseDetection.maxPoseDetections,
+            guiState.multiPoseDetection.minPartConfidence,
+            guiState.multiPoseDetection.nmsRadius);
 
         minPoseConfidence = +guiState.multiPoseDetection.minPoseConfidence;
         minPartConfidence = +guiState.multiPoseDetection.minPartConfidence;
@@ -343,10 +339,10 @@ function detectPoseInRealTime(video, net) {
           if (Math.min(keypoints[9].score, keypoints[10].score) >= minPartConfidence) {
             const kp1 = keypoints[9].position;
             const kp2 = keypoints[10].position;
-            let wristD = wristDist(kp1.y, kp2.y, kp1.x, kp2.y);
+            const wristD = wristDist(kp1.y, kp2.y, kp1.x, kp2.y);
             // console.log(keypoints[9].position.x) // we think this is the right wrist
             // console.log('wristD', wristD);
-            let torsoCenter = getTorsoCenter(keypoints);
+            const torsoCenter = getTorsoCenter(keypoints);
             // console.log(torsoCenter);
             drawPoint(ctx, torsoCenter.y, torsoCenter.x, 8, 'red');
             // console.log(openNess(keypoints))
@@ -393,27 +389,27 @@ function wristDist(leftWristX, leftWristY, rightWristX, rightWristY) {
 
 // eslint-disable-next-line no-unused-vars
 function openNess(keypoints) {
-  let minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
-  let interestJoints = [0, 7, 8, 9, 10, 13, 14, 15, 16];
-  let confidentJoints = interestJoints.filter((joint) => keypoints[joint].score > minPoseConfidence);
+  const minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
+  const interestJoints = [0, 7, 8, 9, 10, 13, 14, 15, 16];
+  const confidentJoints = interestJoints.filter((joint) => keypoints[joint].score > minPoseConfidence);
   if (confidentJoints.length == 0) return 0;
-  let distances = confidentJoints.map((interestJoint) => distanceToCenter(interestJoint, keypoints));
-  let radius = geometricMean(distances);
+  const distances = confidentJoints.map((interestJoint) => distanceToCenter(interestJoint, keypoints));
+  const radius = geometricMean(distances);
   return radius - 100;
 }
 
 function geometricMean(nums) {
-  let squares = nums.map((x) => x ** 2);
+  const squares = nums.map((x) => x ** 2);
   return Math.sqrt(average(squares));
 }
 
 function getTorsoCenter(keypoints) {
-  let torsoPoints = [keypoints[5], keypoints[6], keypoints[11], keypoints[12]];
+  const torsoPoints = [keypoints[5], keypoints[6], keypoints[11], keypoints[12]];
   return weightedCenter(torsoPoints); // at first will actually be unweighted
 }
 
 function getLegCenter(keypoints) {
-  let legPoints = [keypoints[13], keypoints[14], keypoints[15], keypoints[16]];
+  const legPoints = [keypoints[13], keypoints[14], keypoints[15], keypoints[16]];
   return weightedCenter(legPoints); // at first will actually be unweighted
 }
 
@@ -424,8 +420,8 @@ function distanceToCenter(partID, keypoints) {
 }
 
 function weightedCenter(points) { // for points: returns a point not a scalar
-  let xs = points.map((point) => point.position.x);
-  let ys = points.map((point) => point.position.y);
+  const xs = points.map((point) => point.position.x);
+  const ys = points.map((point) => point.position.y);
   return { x: average(xs), y: average(ys) };
 }
 
@@ -433,7 +429,7 @@ function average(nums) {
   function add(a, b) {
     return a + b;
   }
-  let sum = nums.reduce(add);
+  const sum = nums.reduce(add);
   return sum / nums.length;
 }
 
@@ -461,16 +457,14 @@ export async function bindPage() {
   try {
     video = await loadVideo();
   } catch (e) {
-    let info = document.getElementById('info');
+    const info = document.getElementById('info');
     info.textContent = 'this browser does not support video capture,' +
       'or this device does not have a camera';
     info.style.display = 'block';
     throw e;
   }
 
-
   const imageList = await fetchImageList();
-
 
   setupGui([], net, imageList);
   setupFPS();
