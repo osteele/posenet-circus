@@ -5,9 +5,9 @@ tensorflow PosetNet demo at
 [@tensorflow/tfjs-models](https://github.com/tensorflow/tfjs-models/tree/master/posenet).
 It adds:
 
-* The option to select and operate on a static image from a directory.
-* Extracts a feature, and sends it to an API server where it is relayed to OSC.
-* Images are considered both rightside up and upside down. This is an attempt to
+- The option to select and operate on a static image from a directory.
+- Extracts a feature, and sends it to an API server where it is relayed to OSC.
+- Images are considered both rightside up and upside down. This is an attempt to
   recognize people doing circus activities.
 
 ## Setup
@@ -15,7 +15,7 @@ It adds:
 Install dependencies and prepare the build directory:
 
 ```shell
-yarn
+yarn install
 ```
 
 ## Running
